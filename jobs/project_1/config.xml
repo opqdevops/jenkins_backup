@@ -1,0 +1,63 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@2.40">
+  <actions>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@1.8.4"/>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@1.8.4">
+      <jobProperties/>
+      <triggers/>
+      <parameters/>
+      <options/>
+    </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
+  </actions>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties/>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.90">
+    <script>pipeline {
+    agent any
+
+    stages {
+        stage(&apos;Checkout&apos;) {
+            steps {
+                git branch: &apos;main&apos;, credentialsId: &apos;git_credentials&apos;, url: &apos;https://github.com/opqdevops/java-tomcat-maven-example.git&apos;
+                sh &quot;sleep 10&quot;
+            }
+        }
+        stage(&apos;Build&apos;) {
+            steps {
+               sh &quot;mvn clean install&quot;
+               sh &quot;sleep 10&quot;
+            }
+        }
+        stage(&apos;Deploy&apos;) {
+            steps {
+                deploy adapters: [tomcat9(credentialsId: &apos;tomcat_credentials&apos;, path: &apos;&apos;, url: &apos;http://54.157.166.240:8080/&apos;)], contextPath: &apos;demo&apos;, war: &apos;**/*.war&apos;
+                sh &quot;sleep 10&quot;
+            }
+        }
+        stage(&apos;Test&apos;) {
+            steps {
+                echo &quot;test cases will get executed.&quot;
+                sh &quot;sleep 10&quot;
+            }
+        }
+        stage(&apos;run-parallel-branches&apos;) {
+  steps {
+    parallel(
+      a: {
+        echo &quot;This is branch a&quot;
+      },
+      b: {
+        echo &quot;This is branch b&quot;
+      }
+    )
+  }
+}
+    }
+}
+</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>
